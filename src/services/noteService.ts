@@ -34,20 +34,38 @@ export const fetchNotes = async (
   return response.data;
 };
 
-export const createNote = async (newNoteData: NewNoteData): Promise<Note> => {
-  const response = await axios.post<Note>(API_URL, newNoteData, {
+export const createNote = async (newNoteData: NewNoteData) => {
+  const respons = await axios.post(API_URL, newNoteData, {
     headers: {
       Authorization: `Bearer ${API_KEY}`,
     },
   });
-  return response.data;
+  return respons.data;
 };
 
-export const deleteNote = async (noteId: number): Promise<Note> => {
-  const response = await axios.delete<Note>(`${API_URL}/${noteId}`, {
+export const deleteNote = async (id: number) => {
+  console.log(id);
+  await axios.delete(`${API_URL}/${id}`, {
     headers: {
       Authorization: `Bearer ${API_KEY}`,
     },
   });
-  return response.data;
 };
+
+// export const createNote = async (newNoteData: NewNoteData): Promise<Note> => {
+//   const response = await axios.post<Note>(API_URL, newNoteData, {
+//     headers: {
+//       Authorization: `Bearer ${API_KEY}`,
+//     },
+//   });
+//   return response.data;
+// };
+
+// export const deleteNote = async (noteId: number): Promise<Note> => {
+//   const response = await axios.delete<Note>(`${API_URL}/${noteId}`, {
+//     headers: {
+//       Authorization: `Bearer ${API_KEY}`,
+//     },
+//   });
+//   return response.data;
+// };
