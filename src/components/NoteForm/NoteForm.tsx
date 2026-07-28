@@ -1,9 +1,12 @@
 import * as Yup from 'yup';
 import { Field, Formik, Form, ErrorMessage } from 'formik';
 import type { FormikHelpers } from 'formik';
-import type { NewNoteData } from '../../services/noteService';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { createNote } from '../../services/noteService';
+
 import { useId } from 'react';
 import css from './NoteForm.module.css';
+import type { NoteTag } from '../../types/note';
 
 const OrderFormSchema = Yup.object().shape({
   title: Yup.string()
@@ -17,14 +20,13 @@ const OrderFormSchema = Yup.object().shape({
 });
 
 interface NoteFormProps {
-  onSubmit: (newNoteData: NewNoteData) => void;
   onClose: () => void;
 }
 
 interface NoteFormValue {
   title: string;
   content: string;
-  tag: string;
+  tag: NoteTag;
 }
 const initialValues: NoteFormValue = {
   title: '',
@@ -32,14 +34,26 @@ const initialValues: NoteFormValue = {
   tag: 'Todo',
 };
 
-export default function NoteForm({ onSubmit, onClose }: NoteFormProps) {
+export default function NoteForm({ onClose }: NoteFormProps) {
   const fieldId = useId();
+  const queryClient = useQueryClient();
+  const mutation = useMutation({
+    mutationFn: createNote,
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ['notes'],
+      });
+
+      onClose();
+    },
+  });
   const handleSubmit = (
     values: NoteFormValue,
     actions: FormikHelpers<NoteFormValue>
   ) => {
-    console.log('Order data:', values);
-    onSubmit(values);
+    mutation.mutate(values);
+
     actions.resetForm();
   };
 
@@ -105,8 +119,13 @@ export default function NoteForm({ onSubmit, onClose }: NoteFormProps) {
             >
               Cancel
             </button>
-            <button type="submit" className={css.submitButton} disabled={false}>
-              Create note
+
+            <button
+              type="submit"
+              className={css.submitButton}
+              disabled={mutation.isPending}
+            >
+              {mutation.isPending ? 'Creating...' : 'Create note'}
             </button>
           </div>
         </Form>

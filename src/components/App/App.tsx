@@ -67,7 +67,7 @@ export default function App() {
     deleteMutation(id);
   };
   const handleCreate = (newNoteData: NewNoteData) => {
-    createMutation(newNoteData);
+    createMutation(createNote);
   };
 
   return (

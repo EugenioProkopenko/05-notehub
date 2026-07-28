@@ -9,7 +9,7 @@ export interface FetchNotes {
   totalPages: number;
 }
 
-export interface CreateNote {
+export interface CreateNoteData {
   title: string;
   content: string;
   tag: NoteTag;
@@ -34,8 +34,8 @@ export const fetchNotes = async (
   return response.data;
 };
 
-export const createNote = async (createNote: CreateNote): Promise<Note> => {
-  const response = await axios.post<Note>(API_URL, createNote, {
+export const createNote = async (note: CreateNoteData): Promise<Note> => {
+  const response = await axios.post<Note>(API_URL, note, {
     headers: {
       Authorization: `Bearer ${API_KEY}`,
     },
@@ -44,7 +44,7 @@ export const createNote = async (createNote: CreateNote): Promise<Note> => {
 };
 
 export const deleteNote = async (id: string): Promise<Note> => {
-  const response = await axios.delete(`${API_URL}/${id}`, {
+  const response = await axios.delete<Note>(`${API_URL}/${id}`, {
     headers: {
       Authorization: `Bearer ${API_KEY}`,
     },
