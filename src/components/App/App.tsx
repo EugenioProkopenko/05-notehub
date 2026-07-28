@@ -10,10 +10,25 @@ import SearchBox from '../SearchBox/SearchBox';
 import { useState } from 'react';
 import NoteList from '../NoteList/NoteList';
 import NoteForm from '../NoteForm/NoteForm';
+import Modal from '../Modal/Modal';
+import { useQueryClient } from '@tanstack/react-query';
 
 export default function App() {
+  const queryClient = useQueryClient();
+
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleOpenModal = () => {
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+  };
+
   const { data } = useQuery({
     queryKey: ['notes', search, page],
     queryFn: () => fetchNotes(search, page),
@@ -21,6 +36,13 @@ export default function App() {
 
   const { mutate: deleteMutation } = useMutation({
     mutationFn: deleteNote,
+    onSuccess: () => {
+      handleCloseModal();
+
+      queryClient.invalidateQueries({
+        queryKey: ['notes'],
+      });
+    },
   });
   const { mutate: createMutation } = useMutation({
     mutationFn: createNote,
@@ -32,7 +54,6 @@ export default function App() {
   };
 
   const handleDelete = (id: number) => {
-    console.log('Delete id:', id);
     deleteMutation(id);
   };
   const handleCreate = (newNoteData: NewNoteData) => {
@@ -44,12 +65,18 @@ export default function App() {
     <>
       <div className={css.app}>
         <header className={css.toolbar}>
-          <button className={css.button}>Create note +</button>
+          <button className={css.button} onClick={handleOpenModal}>
+            Create note +
+          </button>
           {data && <SearchBox search={search} onSearch={handleSearch} />}
           {/* Пагінація */}
           {/* Кнопка створення нотатки */}
         </header>
-        <NoteForm onSubmit={handleCreate} />
+        {isModalOpen && (
+          <Modal onClose={handleCloseModal}>
+            <NoteForm onSubmit={handleCreate} onClose={handleCloseModal} />
+          </Modal>
+        )}
         {data && <NoteList notes={data.notes} onDelete={handleDelete} />}
       </div>
     </>

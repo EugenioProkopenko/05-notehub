@@ -18,6 +18,7 @@ const OrderFormSchema = Yup.object().shape({
 
 interface NoteFormProps {
   onSubmit: (newNoteData: NewNoteData) => void;
+  onClose: () => void;
 }
 
 interface NoteFormValue {
@@ -31,15 +32,15 @@ const initialValues: NoteFormValue = {
   tag: 'Todo',
 };
 
-export default function NoteForm({ onSubmit }: NoteFormProps) {
+export default function NoteForm({ onSubmit, onClose }: NoteFormProps) {
   const fieldId = useId();
   const handleSubmit = (
     values: NoteFormValue,
     actions: FormikHelpers<NoteFormValue>
   ) => {
     console.log('Order data:', values);
-    actions.resetForm();
     onSubmit(values);
+    actions.resetForm();
   };
 
   return (
@@ -97,7 +98,11 @@ export default function NoteForm({ onSubmit }: NoteFormProps) {
           </div>
 
           <div className={css.actions}>
-            <button type="button" className={css.cancelButton}>
+            <button
+              type="button"
+              className={css.cancelButton}
+              onClick={onClose}
+            >
               Cancel
             </button>
             <button type="submit" className={css.submitButton} disabled={false}>
