@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, keepPreviousData } from '@tanstack/react-query';
 import css from './App.module.css';
 import {
   createNote,
@@ -12,12 +12,16 @@ import NoteList from '../NoteList/NoteList';
 import NoteForm from '../NoteForm/NoteForm';
 import Modal from '../Modal/Modal';
 import { useQueryClient } from '@tanstack/react-query';
+import Pagination from '../Pagination/Pagination';
+import { useDebounce } from 'use-debounce';
 
 export default function App() {
   const queryClient = useQueryClient();
 
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
+
+  const [debouncedSearch] = useDebounce(search, 300);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -30,15 +34,14 @@ export default function App() {
   };
 
   const { data } = useQuery({
-    queryKey: ['notes', search, page],
-    queryFn: () => fetchNotes(search, page),
+    queryKey: ['notes', debouncedSearch, page],
+    queryFn: () => fetchNotes(debouncedSearch, page),
+    placeholderData: keepPreviousData,
   });
 
   const { mutate: deleteMutation } = useMutation({
     mutationFn: deleteNote,
     onSuccess: () => {
-      handleCloseModal();
-
       queryClient.invalidateQueries({
         queryKey: ['notes'],
       });
@@ -46,6 +49,13 @@ export default function App() {
   });
   const { mutate: createMutation } = useMutation({
     mutationFn: createNote,
+    onSuccess: () => {
+      handleCloseModal();
+
+      queryClient.invalidateQueries({
+        queryKey: ['notes'],
+      });
+    },
   });
 
   const handleSearch = (value: string) => {
@@ -57,7 +67,6 @@ export default function App() {
     deleteMutation(id);
   };
   const handleCreate = (newNoteData: NewNoteData) => {
-    console.log(newNoteData);
     createMutation(newNoteData);
   };
 
@@ -69,7 +78,13 @@ export default function App() {
             Create note +
           </button>
           {data && <SearchBox search={search} onSearch={handleSearch} />}
-          {/* Пагінація */}
+          {data && data.totalPages > 1 && (
+            <Pagination
+              currentPage={page}
+              onPageChange={setPage}
+              totalPages={data.totalPages}
+            />
+          )}
           {/* Кнопка створення нотатки */}
         </header>
         {isModalOpen && (
