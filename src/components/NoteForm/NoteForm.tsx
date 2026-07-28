@@ -8,7 +8,7 @@ import { useId } from 'react';
 import css from './NoteForm.module.css';
 import type { NoteTag } from '../../types/note';
 
-const OrderFormSchema = Yup.object().shape({
+const NoteFormSchema = Yup.object().shape({
   title: Yup.string()
     .min(3, 'Title must be at least 3 characters')
     .max(50, 'Title is too long')
@@ -62,7 +62,7 @@ export default function NoteForm({ onClose }: NoteFormProps) {
       <Formik
         initialValues={initialValues}
         onSubmit={handleSubmit}
-        validationSchema={OrderFormSchema}
+        validationSchema={NoteFormSchema}
       >
         <Form className={css.form}>
           <div className={css.formGroup}>

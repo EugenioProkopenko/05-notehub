@@ -4,7 +4,7 @@ import type { Note, NoteTag } from '../types/note';
 const API_KEY = import.meta.env.VITE_NOTEHUB_TOKEN;
 const API_URL = 'https://notehub-public.goit.study/api/notes';
 
-export interface FetchNotes {
+export interface FetchNotesResponse {
   notes: Note[];
   totalPages: number;
 }
@@ -18,13 +18,13 @@ export interface CreateNoteData {
 export const fetchNotes = async (
   search: string,
   page: number
-): Promise<FetchNotes> => {
+): Promise<FetchNotesResponse> => {
   const params: Record<string, string | number> = { page };
   if (search) {
     params.search = search;
   }
 
-  const response = await axios.get<FetchNotes>(API_URL, {
+  const response = await axios.get<FetchNotesResponse>(API_URL, {
     params,
     headers: {
       Authorization: `Bearer ${API_KEY}`,

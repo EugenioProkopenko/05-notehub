@@ -1,23 +1,16 @@
-import { useMutation, useQuery, keepPreviousData } from '@tanstack/react-query';
+import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import css from './App.module.css';
-import {
-  createNote,
-  deleteNote,
-  fetchNotes,
-  type NewNoteData,
-} from '../../services/noteService';
+import { fetchNotes } from '../../services/noteService';
 import SearchBox from '../SearchBox/SearchBox';
 import { useState } from 'react';
 import NoteList from '../NoteList/NoteList';
 import NoteForm from '../NoteForm/NoteForm';
 import Modal from '../Modal/Modal';
-import { useQueryClient } from '@tanstack/react-query';
+
 import Pagination from '../Pagination/Pagination';
 import { useDebounce } from 'use-debounce';
 
 export default function App() {
-  const queryClient = useQueryClient();
-
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
 
@@ -39,44 +32,15 @@ export default function App() {
     placeholderData: keepPreviousData,
   });
 
-  const { mutate: deleteMutation } = useMutation({
-    mutationFn: deleteNote,
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ['notes'],
-      });
-    },
-  });
-  const { mutate: createMutation } = useMutation({
-    mutationFn: createNote,
-    onSuccess: () => {
-      handleCloseModal();
-
-      queryClient.invalidateQueries({
-        queryKey: ['notes'],
-      });
-    },
-  });
-
   const handleSearch = (value: string) => {
     setSearch(value);
     setPage(1);
-  };
-
-  const handleDelete = (id: number) => {
-    deleteMutation(id);
-  };
-  const handleCreate = (newNoteData: NewNoteData) => {
-    createMutation(createNote);
   };
 
   return (
     <>
       <div className={css.app}>
         <header className={css.toolbar}>
-          <button className={css.button} onClick={handleOpenModal}>
-            Create note +
-          </button>
           {data && <SearchBox search={search} onSearch={handleSearch} />}
           {data && data.totalPages > 1 && (
             <Pagination
@@ -85,14 +49,16 @@ export default function App() {
               totalPages={data.totalPages}
             />
           )}
-          {/* Кнопка створення нотатки */}
+          <button className={css.button} onClick={handleOpenModal}>
+            Create note +
+          </button>
         </header>
+        {data && <NoteList notes={data.notes} />}
         {isModalOpen && (
           <Modal onClose={handleCloseModal}>
-            <NoteForm onSubmit={handleCreate} onClose={handleCloseModal} />
+            <NoteForm onClose={handleCloseModal} />
           </Modal>
         )}
-        {data && <NoteList notes={data.notes} onDelete={handleDelete} />}
       </div>
     </>
   );
